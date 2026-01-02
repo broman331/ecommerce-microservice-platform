@@ -1,0 +1,359 @@
+openapi: 3.0.0
+info:
+  title: E-commerce Microservices API
+  version: 1.3.0
+  description: Shared API contract for User, Order, Inventory, and Product services.
+
+servers:
+  - url: http://localhost:3001
+    description: User Service
+  - url: http://localhost:3002
+    description: Order Service
+  - url: http://localhost:3003
+    description: Inventory Service
+  - url: http://localhost:3004
+    description: Product Service (BFF/Aggregator)
+  - url: http://localhost:3005
+    description: Customer Service (BFF/Security)
+
+paths:
+  # User Service Paths
+  /auth/login:
+    post:
+      summary: Login user
+      tags: [User Service]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Successful login
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                  user:
+                    $ref: '#/components/schemas/User'
+
+  /users/profile:
+    get:
+      summary: Get user profile
+      tags: [User Service]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: User profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+
+  # Order Service Paths
+  /orders:
+    get:
+      summary: List user orders
+      tags: [Order Service]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of orders
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Order'
+    post:
+      summary: Create new order
+      tags: [Order Service]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderInput'
+      responses:
+        '201':
+          description: Order created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+
+  # Inventory Service Paths
+  /products:
+    get:
+      summary: List raw products
+      tags: [Inventory Service]
+      responses:
+        '200':
+          description: List of products
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Product'
+    post:
+      summary: Create new product
+      tags: [Inventory Service]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductInput'
+      responses:
+        '201':
+          description: Product created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+
+  /products/{id}:
+    get:
+      summary: Get raw product details
+      tags: [Inventory Service]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Product details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+    patch:
+      summary: Update product (e.g. enable/disable)
+      tags: [Inventory Service]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                enabled:
+                  type: boolean
+                price:
+                   type: number
+      responses:
+        '200':
+          description: Product updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+
+  # Product Service Paths (Aggregator)
+  /store/products:
+    get:
+      summary: Get enriched products (with sales stats)
+      tags: [Product Service]
+      responses:
+        '200':
+          description: List of enriched products
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/EnrichedProduct'
+    post:
+      summary: Create enriched product (proxy to inventory)
+      tags: [Product Service]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductInput'
+      responses:
+        '201':
+          description: Product created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnrichedProduct'
+
+  /store/products/{id}:
+    get:
+      summary: Get enriched product details
+      tags: [Product Service]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Enriched product details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnrichedProduct'
+    patch:
+      summary: Update enriched product (proxy to inventory)
+      tags: [Product Service]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                enabled:
+                  type: boolean
+      responses:
+        '200':
+          description: Product updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnrichedProduct'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+        name:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    ProductInput:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        price:
+          type: number
+        stock:
+          type: integer
+        enabled:
+          type: boolean
+          default: true
+
+    Product:
+      allOf:
+        - $ref: '#/components/schemas/ProductInput'
+        - type: object
+          properties:
+            id:
+              type: string
+
+    EnrichedProduct:
+      allOf:
+        - $ref: '#/components/schemas/Product'
+        - type: object
+          properties:
+            totalOrders:
+              type: integer
+            lastOrderedAt:
+              type: string
+              format: date-time
+
+    OrderInput:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              productId:
+                type: string
+              quantity:
+                type: integer
+
+    Order:
+      type: object
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        status:
+          type: string
+          enum: [PENDING, CONFIRMED, SHIPPED, DELIVERED]
+        totalAmount:
+          type: number
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              productId:
+                type: string
+              quantity:
+                type: integer
+              priceAtPurchase:
+                type: number
+        createdAt:
+          type: string
+          format: date-time
+
+  # Customer Service Paths
+  /customers/me/orders:
+    get:
+      summary: Get current customer's orders
+      tags:
+        - Customer
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of orders
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Order'
