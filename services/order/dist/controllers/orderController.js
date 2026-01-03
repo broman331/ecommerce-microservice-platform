@@ -27,15 +27,47 @@ class OrderController {
             res.json(orders);
         });
     }
+    searchOrders(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const { userId, startDate, endDate } = req.query;
+            const orders = yield orderService.searchOrders({
+                userId: userId,
+                startDate: startDate,
+                endDate: endDate
+            });
+            res.json(orders);
+        });
+    }
     createOrder(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             const userId = req.headers['x-user-id'] || '1';
-            const { items } = req.body;
+            const { items, shippingAddressId } = req.body;
             if (!items || !Array.isArray(items)) {
                 return res.status(400).json({ message: 'Invalid items' });
             }
-            const order = yield orderService.createOrder(userId, items);
+            const order = yield orderService.createOrder(userId, items, shippingAddressId);
             res.status(201).json(order);
+        });
+    }
+    getOrder(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const { id } = req.params;
+            const order = yield orderService.getOrderById(id);
+            if (!order) {
+                return res.status(404).json({ message: 'Order not found' });
+            }
+            res.json(order);
+        });
+    }
+    updateStatus(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const { id } = req.params;
+            const { status } = req.body;
+            const order = yield orderService.updateOrderStatus(id, status);
+            if (!order) {
+                return res.status(404).json({ message: 'Order not found' });
+            }
+            res.json(order);
         });
     }
 }
