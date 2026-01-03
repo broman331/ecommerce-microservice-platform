@@ -113,6 +113,34 @@ We employ a multi-layered testing strategy to ensure reliability across the micr
 - **Frontend (Unit)**: Vitest, React Testing Library
 - **Frontend (E2E)**: Playwright
 
+### 🚦 Running Tests
+
+To run tests, you must first install dependencies in the respective directories:
+
+**1. Backend Services:**
+Navigate to any service (e.g., `services/cart`) and run:
+```bash
+cd services/cart
+npm install       # Installing dependencies
+npm test          # Runs Jest unit and API tests
+```
+
+**2. Frontend Unit Tests:**
+```bash
+cd web
+npm install       # Installing dependencies
+npm test          # Runs Vitest unit tests
+```
+
+**3. Frontend E2E Tests (Playwright):**
+For E2E tests, you need to install Playwright browsers first:
+```bash
+cd web
+npm install
+npx playwright install chromium --with-deps # Isolate browser binary installation
+npm run test:e2e  # Runs Playwright E2E tests
+```
+
 ### ✅ What is Tested?
 - **Backend Unit Tests**: Validation of critical business logic within Controllers and Services (e.g., price calculations, stock deduction, promotion rules).
 - **Backend API Tests**: Integration tests for all REST endpoints using `supertest`. These tests mock downstream HTTP dependencies (via `axios` mocks) to test each service in isolation without requiring the full microservice mesh to be running.
