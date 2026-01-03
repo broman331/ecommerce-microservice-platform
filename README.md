@@ -142,12 +142,54 @@ npm run test:e2e  # Runs Playwright E2E tests
 ```
 
 ### ✅ What is Tested?
-- **Backend Unit Tests**: Validation of critical business logic within Controllers and Services (e.g., price calculations, stock deduction, promotion rules).
-- **Backend API Tests**: Integration tests for all REST endpoints using `supertest`. These tests mock downstream HTTP dependencies (via `axios` mocks) to test each service in isolation without requiring the full microservice mesh to be running.
-- **Frontend Unit Tests**: Verification of component rendering, user interactions, and specific state logic for key pages (e.g., Dashboard).
-- **End-to-End (E2E) Tests**: Critical user flows (e.g., Dashboard loading, data presentation) are verified against a running frontend instance. Network interception is used to mock backend responses, ensuring deterministic and fast UI tests.
+
+The test suite covers the following areas:
+
+#### 1. Backend API & Unit Tests
+Each microservice is tested independently using `Supertest` and `Jest`.
+- **Customer Service**:
+  - `GET /customers/me/orders`: Fetching user order history.
+  - `GET /customers/me/wishlist`: Retrieving user wishlist items.
+  - Unit tests for `CustomerController` logic.
+- **Product Service**:
+  - `GET /store/products`: Aggregating product data with inventory status.
+  - Logic for calculating order statistics (e.g., "Total Orders").
+- **Order Service**:
+  - `POST /orders`: Order creation flow, including stock deduction via Inventory service mocks.
+  - `GET /orders`: Retrieving order details.
+- **Cart Service**:
+  - `POST /cart/:id/items`: Adding items, validating stock availability.
+  - `POST /cart/:id/checkout`: Converting cart to order.
+- **Inventory Service**:
+  - `POST /products`: Creating new inventory items.
+  - `POST /products/:id/deduct`: Handling stock reservations and insufficient stock errors.
+- **Shipping Service**:
+  - `POST /shipping/dispatch`: Generating tracking numbers and shipments.
+  - Address management endpoints.
+- **Promotions Service**:
+  - `POST /promotions/apply`: Validating codes (percentage/fixed) and minimum order values.
+- **User Service**:
+  - `POST /auth/register`: User creation and duplicate checks.
+  - `POST /auth/login`: Credential validation and token generation.
+- **Wishlist Service**:
+  - CRUD operations for managing user wishlists.
+
+#### 2. Frontend Tests
+- **Unit Tests (Vitest)**:
+  - **Dashboard**: Verifies rendering of "Recent Orders" and "Active Carts" components.
+  - Validation of client-side logic for data fetching hooks.
+- **E2E Tests (Playwright)**:
+  - **Dashboard Loading**: Verifies the application loads and displays critical information.
+  - **Network Mocking**: Demonstrates how to intercept calls to backend services (Cart, Customer, Promotions) to ensure UI tests are not flaky due to backend state.
 
 ### 🚧 Limitations & Future Work
-- **Database Integration**: Currently, the system uses in-memory mock databases. Real database integration tests (e.g., with Postgres or MongoDB testcontainers) are not currently covered.
-- **Contract Testing**: Formal consumer-driven contract testing (e.g., Pact) between microservices is not implemented.
-- **Full E2E Integration**: While key flows are tested with mocks, full, live integration tests running against all real containerized services simultaneously are not part of the standard CI test suite to maintain speed and isolation.
+
+While the current strategy ensures code quality and isolation, the following areas are planned for future improvements:
+
+- **Database Integration**: Currently, services use in-memory mock databases. Future tests will integrate **Testcontainers** (Postgres/MongoDB) to validate actual SQL/NoSQL queries and transactions.
+- **Contract Testing**: Implementing **Pact** to ensure API contracts between microservices (e.g., Order -> Inventory) are strictly accepted, preventing regression when API schemas change.
+- **Full E2E Integration**: Adding a suite of "Live System" tests that run against the actual Dockerized environment (no mocks) to verify network connectivity and service discovery in a production-like setting.
+- **Error Scenarios**: Expanding test coverage to simulate timeout/500 errors from dependent services (e.g., how Order Service handles Inventory downtime).
+- **Authentication**: Implementing more rigorous JWT validation tests across all protected endpoints.
+- **Complex Promotions**: Adding tests for edge cases like conflicting promotion rules or expiration dates.
+- **Frontend Flows**: Expanding Playwright coverage to include the full "Checkout" wizard and "Product Details" interactions.
