@@ -1,33 +1,33 @@
 {
-  "name": "user-service",
-  "version": "1.0.0",
-  "description": "User Service for E-commerce Microservices",
-  "main": "dist/index.js",
-  "scripts": {
-    "start": "node dist/index.js",
-    "build": "tsc",
-    "dev": "ts-node-dev src/index.ts",
-    "test": "jest"
-  },
-  "dependencies": {
-    "@types/bcryptjs": "^2.4.6",
-    "bcryptjs": "^3.0.3",
-    "cors": "^2.8.5",
-    "dotenv": "^16.3.1",
-    "express": "^4.18.2",
-    "jsonwebtoken": "^9.0.2"
-  },
-  "devDependencies": {
-    "@types/cors": "^2.8.13",
-    "@types/express": "^4.17.17",
-    "@types/jest": "^30.0.0",
-    "@types/jsonwebtoken": "^9.0.2",
-    "@types/node": "^20.4.5",
-    "@types/supertest": "^6.0.3",
-    "jest": "^30.2.0",
-    "supertest": "^7.1.4",
-    "ts-jest": "^29.4.6",
-    "ts-node-dev": "^2.0.0",
-    "typescript": "^5.1.6"
-  }
+    "name": "user-service",
+    "version": "1.0.0",
+    "description": "User Service for E-commerce Microservices",
+    "main": "dist/src/index.js",
+    "scripts": {
+        "start": "node dist/src/index.js",
+        "build": "tsc",
+        "dev": "ts-node-dev src/index.ts",
+        "test": "jest"
+    },
+    "dependencies": {
+        "@types/bcryptjs": "^2.4.6",
+        "bcryptjs": "^3.0.3",
+        "cors": "^2.8.5",
+        "dotenv": "^16.3.1",
+        "express": "^4.18.2",
+        "jsonwebtoken": "^9.0.2"
+    },
+    "devDependencies": {
+        "@types/cors": "^2.8.13",
+        "@types/express": "^4.17.17",
+        "@types/jest": "^30.0.0",
+        "@types/jsonwebtoken": "^9.0.2",
+        "@types/node": "^20.4.5",
+        "@types/supertest": "^6.0.3",
+        "jest": "^30.2.0",
+        "supertest": "^7.1.4",
+        "ts-jest": "^29.4.6",
+        "ts-node-dev": "^2.0.0",
+        "typescript": "^5.1.6"
+    }
 }

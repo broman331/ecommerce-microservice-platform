@@ -44,3 +44,4 @@ docker-data/
 .vscode
 *.swp
 *.swo
+dist/

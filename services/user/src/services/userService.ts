@@ -24,4 +24,16 @@ export class UserService {
 
         return bcrypt.compare(password, user.passwordHash);
     }
+    async createUser(userData: { email: string; name: string }, password: string): Promise<User> {
+        const passwordHash = await bcrypt.hash(password, 10);
+        const newUser: User = {
+            id: (users.length + 1).toString(),
+            email: userData.email,
+            name: userData.name,
+            passwordHash,
+            createdAt: new Date().toISOString()
+        };
+        users.push(newUser);
+        return newUser;
+    }
 }

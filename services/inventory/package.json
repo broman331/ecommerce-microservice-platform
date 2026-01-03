@@ -2,9 +2,9 @@
     "name": "inventory-service",
     "version": "1.0.0",
     "description": "Inventory Service for E-commerce Microservices",
-    "main": "dist/index.js",
+    "main": "dist/src/index.js",
     "scripts": {
-        "start": "node dist/index.js",
+        "start": "node dist/src/index.js",
         "build": "tsc",
         "dev": "ts-node-dev src/index.ts",
         "test": "jest"

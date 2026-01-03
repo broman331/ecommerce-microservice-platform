@@ -30,4 +30,22 @@ export class AuthController {
 
         res.json({ token, user: userWithoutHash });
     }
+
+    async register(req: Request, res: Response) {
+        const { email, password, name } = req.body;
+
+        if (!email || !password || !name) {
+            return res.status(400).json({ message: 'Email, password and name are required' });
+        }
+
+        const existingUser = await userService.findByEmail(email);
+        if (existingUser) {
+            return res.status(400).json({ message: 'User already exists' });
+        }
+
+        const newUser = await userService.createUser({ email, name }, password);
+        const { passwordHash, ...userWithoutHash } = newUser;
+
+        res.status(201).json({ user: userWithoutHash });
+    }
 }

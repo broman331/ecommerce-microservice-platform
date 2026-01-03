@@ -13,14 +13,14 @@ describe('Wishlist Service API', () => {
 
             expect(res.status).toBe(200);
             expect(res.body.userId).toBe(userId);
-            expect(res.body.products).toContain('p1');
+            expect(res.body.products.some((p: any) => p.productId === 'p1')).toBe(true);
         });
 
         it('should ignore duplicates', async () => {
             await request(app).post(`/wishlist/${userId}/add`).send({ productId: 'p1' });
             const res = await request(app).post(`/wishlist/${userId}/add`).send({ productId: 'p1' });
             // Assuming implementation uses Set or check
-            const count = res.body.products.filter((p: string) => p === 'p1').length;
+            const count = res.body.products.filter((p: any) => p.productId === 'p1').length;
             expect(count).toBe(1);
         });
     });
@@ -29,7 +29,7 @@ describe('Wishlist Service API', () => {
         it('should return wishlist', async () => {
             const res = await request(app).get(`/wishlist/${userId}`);
             expect(res.status).toBe(200);
-            expect(res.body.products).toContain('p1');
+            expect(res.body.products.some((p: any) => p.productId === 'p1')).toBe(true);
         });
     });
 
@@ -37,7 +37,7 @@ describe('Wishlist Service API', () => {
         it('should remove product', async () => {
             const res = await request(app).delete(`/wishlist/${userId}/remove/p1`);
             expect(res.status).toBe(200);
-            expect(res.body.products).not.toContain('p1');
+            expect(res.body.products.some((p: any) => p.productId === 'p1')).toBe(false);
         });
     });
 });
