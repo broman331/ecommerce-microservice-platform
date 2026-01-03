@@ -139,6 +139,7 @@ export default function OrderDetailsModal({ order: initialOrder, onClose, onUpda
                                 <thead className="bg-gray-50 text-gray-700 font-medium">
                                     <tr>
                                         <th className="py-2 px-4">Product ID</th>
+                                        <th className="py-2 px-4">Product Name</th>
                                         <th className="py-2 px-4 text-center">Qty</th>
                                         <th className="py-2 px-4 text-right">Price</th>
                                         <th className="py-2 px-4 text-right">Total</th>
@@ -148,6 +149,7 @@ export default function OrderDetailsModal({ order: initialOrder, onClose, onUpda
                                     {order.items.map((item, idx) => (
                                         <tr key={idx}>
                                             <td className="py-2 px-4 text-gray-900">{item.productId}</td>
+                                            <td className="py-2 px-4 text-gray-900">{item.name || item.productName || `Product ${item.productId}`}</td>
                                             <td className="py-2 px-4 text-center text-gray-900">{item.quantity}</td>
                                             <td className="py-2 px-4 text-right text-gray-900">${item.priceAtPurchase.toFixed(2)}</td>
                                             <td className="py-2 px-4 text-right font-medium text-gray-900">${(item.priceAtPurchase * item.quantity).toFixed(2)}</td>

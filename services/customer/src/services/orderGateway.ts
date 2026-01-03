@@ -1,10 +1,8 @@
 import axios from 'axios';
-
-const ORDER_SERVICE_URL = process.env.ORDER_SERVICE_URL || 'http://localhost:3002/orders';
+const ORDER_SERVICE_URL = process.env.ORDER_SERVICE_URL || 'http://localhost:3002';
 
 export class OrderGateway {
     async getOrdersForUser(userId: string, token: string) {
-        // In a real app, pass the token or use a system token
         try {
             const response = await axios.get(`${ORDER_SERVICE_URL}/orders?userId=${userId}`);
             return response.data;

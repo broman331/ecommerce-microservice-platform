@@ -44,7 +44,7 @@ export default async function ProductsPage() {
                                     <span className={`px-2 py-1 rounded ${product.stock > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
                                         {product.stock > 0 ? `${product.stock} In Stock` : 'Out of Stock'}
                                     </span>
-                                    <span className="text-gray-400">
+                                    <span className="text-gray-600">
                                         {product.totalOrders} orders
                                     </span>
                                 </div>

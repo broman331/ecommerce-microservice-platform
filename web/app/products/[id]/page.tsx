@@ -62,13 +62,13 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
                                 <span className="block text-xs text-gray-500 mb-1">Stock Level</span>
                                 <div className="flex items-center gap-2">
                                     <div className={`w-3 h-3 rounded-full ${product.stock > 10 ? 'bg-green-500' : 'bg-orange-500'}`}></div>
-                                    <span className="font-medium">{product.stock} units available</span>
+                                    <span className="font-medium text-gray-900">{product.stock} units available</span>
                                 </div>
                             </div>
 
                             <div className="pt-4 border-t border-gray-200">
                                 <span className="block text-xs text-gray-500 mb-1">Sales Performance</span>
-                                <p className="font-medium">{product.totalOrders} total orders</p>
+                                <p className="font-medium text-gray-900">{product.totalOrders} total orders</p>
                                 {product.lastOrderedAt && (
                                     <p className="text-xs text-gray-400 mt-1">Last ordered: {new Date(product.lastOrderedAt).toLocaleDateString()}</p>
                                 )}

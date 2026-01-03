@@ -1,5 +1,7 @@
 export interface OrderItem {
     productId: string;
+    productName?: string;
+    name?: string;
     quantity: number;
     priceAtPurchase: number;
 }
@@ -32,7 +34,7 @@ const generateMockOrders = () => {
                 status: Math.random() > 0.5 ? 'DELIVERED' : 'SHIPPED',
                 totalAmount: Math.floor(Math.random() * 500) + 50,
                 items: [
-                    { productId: '1', quantity: 1, priceAtPurchase: 50 }
+                    { productId: '1', productName: 'High-End Laptop', quantity: 1, priceAtPurchase: 50 }
                 ],
                 createdAt: date.toISOString()
             });

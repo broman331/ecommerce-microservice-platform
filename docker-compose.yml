@@ -38,7 +38,7 @@ services:
       - "3002:3002"
     environment:
       - PORT=3002
-      - INVENTORY_SERVICE_URL=http://inventory-service:3003
+      - INVENTORY_SERVICE_URL=http://inventory-service:3003/products
 
   inventory-service:
     build: ./services/inventory

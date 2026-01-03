@@ -43,7 +43,8 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
                                         IMG
                                     </div>
                                     <div>
-                                        <p className="font-medium text-gray-900">Product ID: {item.productId}</p>
+                                        <p className="font-medium text-gray-900">{item.name || item.productName || `Product ${item.productId}`}</p>
+                                        <p className="text-xs text-gray-400">ID: {item.productId}</p>
                                         <p className="text-sm text-gray-500">Qty: {item.quantity}</p>
                                     </div>
                                 </div>

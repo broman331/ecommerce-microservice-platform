@@ -102,3 +102,24 @@ project-005/
 ├── docker-compose.yml      # Orchestration config
 └── README.md               # This file
 ```
+
+## 🧪 Quality Assurance (QA)
+
+### Types of Tests
+We employ a multi-layered testing strategy to ensure reliability across the microservices and frontend hierarchy.
+
+### 🛠 Tech Stack
+- **Backend (Unit & Integration)**: Jest, Supertest, ts-jest
+- **Frontend (Unit)**: Vitest, React Testing Library
+- **Frontend (E2E)**: Playwright
+
+### ✅ What is Tested?
+- **Backend Unit Tests**: Validation of critical business logic within Controllers and Services (e.g., price calculations, stock deduction, promotion rules).
+- **Backend API Tests**: Integration tests for all REST endpoints using `supertest`. These tests mock downstream HTTP dependencies (via `axios` mocks) to test each service in isolation without requiring the full microservice mesh to be running.
+- **Frontend Unit Tests**: Verification of component rendering, user interactions, and specific state logic for key pages (e.g., Dashboard).
+- **End-to-End (E2E) Tests**: Critical user flows (e.g., Dashboard loading, data presentation) are verified against a running frontend instance. Network interception is used to mock backend responses, ensuring deterministic and fast UI tests.
+
+### 🚧 Limitations & Future Work
+- **Database Integration**: Currently, the system uses in-memory mock databases. Real database integration tests (e.g., with Postgres or MongoDB testcontainers) are not currently covered.
+- **Contract Testing**: Formal consumer-driven contract testing (e.g., Pact) between microservices is not implemented.
+- **Full E2E Integration**: While key flows are tested with mocks, full, live integration tests running against all real containerized services simultaneously are not part of the standard CI test suite to maintain speed and isolation.

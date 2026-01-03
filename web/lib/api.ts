@@ -23,6 +23,8 @@ export interface EnrichedProduct extends Product {
 
 export interface OrderItem {
     productId: string;
+    productName?: string;
+    name?: string;
     quantity: number;
     priceAtPurchase: number;
 }

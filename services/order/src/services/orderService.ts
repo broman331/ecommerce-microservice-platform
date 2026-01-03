@@ -1,51 +1,77 @@
 import axios from 'axios';
 import { orders, Order, OrderItem } from '../models/Order';
 
-const INVENTORY_SERVICE_URL = process.env.INVENTORY_SERVICE_URL || 'http://localhost:3003';
+const INVENTORY_SERVICE_URL = process.env.INVENTORY_SERVICE_URL || 'http://localhost:3003/products';
 
 export class OrderService {
+    private async enrichOrder(order: Order): Promise<Order> {
+        for (const item of order.items) {
+            if (!item.productName || !item.name) {
+                try {
+                    const res = await axios.get(`${INVENTORY_SERVICE_URL}/${item.productId}`);
+                    const productName = res.data.name;
+                    item.productName = productName;
+                    item.name = productName;
+                } catch (e: any) {
+                    console.error(`Failed to enrich order item ${item.productId} at ${INVENTORY_SERVICE_URL}/${item.productId}`, e.message);
+                }
+            }
+        }
+        return order;
+    }
+
     async findByUserId(userId: string): Promise<Order[]> {
-        return orders.filter(o => o.userId === userId);
+        const userOrders = orders.filter(o => o.userId === userId);
+        return Promise.all(userOrders.map(o => this.enrichOrder(o)));
     }
 
     async searchOrders(filters: { userId?: string, startDate?: string, endDate?: string }): Promise<Order[]> {
-        return orders.filter(o => {
+        const filtered = orders.filter(o => {
             if (filters.userId && o.userId !== filters.userId) return false;
             if (filters.startDate && new Date(o.createdAt) < new Date(filters.startDate)) return false;
             if (filters.endDate && new Date(o.createdAt) > new Date(filters.endDate)) return false;
             return true;
         });
+        return Promise.all(filtered.map(o => this.enrichOrder(o)));
     }
 
-    async createOrder(userId: string, items: { productId: string; quantity: number }[], shippingAddressId?: string): Promise<Order> {
-        // In a real microservice architecture, we would:
-        // 1. Call Inventory Service -> Check stock & Get price
-        // 2. Call User Service -> Validate User (if not done via token)
+    async createOrder(userId: string, items: any[], shippingAddressId?: string): Promise<Order> {
+        const orderItems: OrderItem[] = [];
 
-        // For this mock implementation, we'll assign a static price.
-        const orderItems: OrderItem[] = items.map(item => ({
-            productId: item.productId,
-            quantity: item.quantity,
-            priceAtPurchase: 100 // Mock price
-        }));
-
-        // Deduct Stock via Inventory Service
         for (const item of items) {
+            let name = item.productName || item.name;
+            let price = item.priceAtPurchase || item.price || 0;
+
+            if (!name || price === 0) {
+                try {
+                    const res = await axios.get(`${INVENTORY_SERVICE_URL}/${item.productId}`);
+                    name = name || res.data.name;
+                    price = price || res.data.price;
+                } catch (e: any) {
+                    console.error(`Failed to fetch enrichment for ${item.productId} at ${INVENTORY_SERVICE_URL}/${item.productId}`, e.message);
+                }
+            }
+
+            orderItems.push({
+                productId: item.productId,
+                productName: name || 'Unknown Product',
+                name: name || 'Unknown Product',
+                quantity: item.quantity,
+                priceAtPurchase: price || 100
+            });
+
             try {
-                // Call /products/:id/deduct
-                // Ensure endpoint is correct based on what we added to Inventory Service
-                await axios.post(`${INVENTORY_SERVICE_URL}/products/${item.productId}/deduct`, {
+                // Remove the /products suffix if standardening on base URL inclusively
+                // Wait, the deduct endpoint is also under /products.
+                // Since base is now .../products, we just use /:id/deduct.
+                await axios.post(`${INVENTORY_SERVICE_URL}/${item.productId}/deduct`, {
                     quantity: item.quantity
                 });
-            } catch (error) {
-                console.error(`Failed to deduct stock for product ${item.productId}`, error);
-                // In a real system, we'd rollback or fail the order. 
-                // Here we proceed but log it.
+            } catch (error: any) {
+                console.error(`Failed to deduct stock for product ${item.productId}`, error.message);
             }
         }
-
         const totalAmount = orderItems.reduce((sum, item) => sum + (item.priceAtPurchase * item.quantity), 0);
-
         const newOrder: Order = {
             id: `order-${orders.length + 1}`,
             userId,
@@ -55,12 +81,14 @@ export class OrderService {
             createdAt: new Date().toISOString(),
             shippingAddressId
         };
-
         orders.push(newOrder);
         return newOrder;
     }
+
     async getOrderById(id: string): Promise<Order | undefined> {
-        return orders.find(o => o.id === id);
+        const order = orders.find(o => o.id === id);
+        if (!order) return undefined;
+        return this.enrichOrder(order);
     }
 
     async updateOrderStatus(id: string, status: 'PENDING' | 'CONFIRMED' | 'SHIPPED' | 'DELIVERED'): Promise<Order | null> {
