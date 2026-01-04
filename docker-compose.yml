@@ -1,10 +1,15 @@
 version: '3.8'
 
 services:
-  web:
-    build: ./web
+  dashboard-admin:
+    build: ./Dashboard-Admin
     ports:
       - "3000:3000"
+    command: npm run dev
+    volumes:
+      - ./Dashboard-Admin:/app
+      - /app/node_modules
+      - /app/.next
     environment:
       - NEXT_PUBLIC_API_URL=http://localhost:3000
       - USER_SERVICE_URL=http://user-service:3001
