@@ -11,7 +11,7 @@ Project 005 is designed to simulate a real-world e-commerce ecosystem. It featur
 
 The system is composed of the following microservices:
 
-*   **Frontend (Web)**: A Next.js application (React) with Tailwind CSS, acting as the user interface and API gateway aggregator.
+*   **Frontend (Dashboard-Admin)**: A Next.js application (React) with Tailwind CSS, acting as the user interface and API gateway aggregator.
 *   **User Service**: Manages user authentication (JWT) and profiles.
 *   **Product Service**: Handles product catalog, details, and enriched data (aggregated from Inventory).
 *   **Order Service**: Manages order creation, lifecycle (Pending -> Delivered), and history.
@@ -58,7 +58,7 @@ If you prefer running services individually (e.g., for debugging):
 
 1.  **Frontend**:
     ```bash
-    cd web
+    cd Dashboard-Admin
     npm install
     npm run dev
     ```
@@ -98,10 +98,23 @@ project-005/
 │   ├── shipping/
 │   ├── user/
 │   └── wishlist/
-├── web/                    # Next.js Frontend
+├── Dashboard-Admin/        # Next.js Frontend
+├── docs/                   # Documentation (Architecture, OpenAPI Specs)
+├── scripts/                # Utility and test scripts
 ├── docker-compose.yml      # Orchestration config
 └── README.md               # This file
 ```
+
+## 📜 Workspace Rule: Strict-API-Contract
+
+To ensure stability across the microservice ecosystem, all changes must strictly adhere to the [OpenAPI specification](./docs/openapi.yaml).
+
+### Constraints
+1.  **Backend Services**:
+    *   Must NOT change port numbers (3001, 3002, 3003, etc.).
+    *   Must NOT change route signatures without explicit approval.
+2.  **Frontend (Dashboard-Admin)**:
+    *   Must use the exact endpoints defined in the OpenAPI spec.
 
 ## 🧪 Quality Assurance (QA)
 
@@ -127,7 +140,7 @@ npm test          # Runs Jest unit and API tests
 
 **2. Frontend Unit Tests:**
 ```bash
-cd web
+cd Dashboard-Admin
 npm install       # Installing dependencies
 npm test          # Runs Vitest unit tests
 ```
@@ -135,7 +148,7 @@ npm test          # Runs Vitest unit tests
 **3. Frontend E2E Tests (Playwright):**
 For E2E tests, you need to install Playwright browsers first:
 ```bash
-cd web
+cd Dashboard-Admin
 npm install
 npx playwright install chromium --with-deps # Isolate browser binary installation
 npm run test:e2e  # Runs Playwright E2E tests
