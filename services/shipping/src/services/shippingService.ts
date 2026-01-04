@@ -1,17 +1,20 @@
-import { addresses, shipments, Shipment, ShippingAddress } from '../models/shippingModel';
+import { Shipment, ShippingAddress } from '../models/shippingModel';
+import { IShippingRepository } from '../dal/IShippingRepository';
+import { randomUUID } from 'crypto';
 
 export class ShippingService {
+    constructor(private repository: IShippingRepository) { }
+
     async getUserAddresses(userId: string): Promise<ShippingAddress[]> {
-        return addresses.filter(a => a.userId === userId);
+        return this.repository.getAddresses(userId);
     }
 
     async addAddress(address: Omit<ShippingAddress, 'id'>): Promise<ShippingAddress> {
         const newAddress: ShippingAddress = {
-            id: `addr-${addresses.length + 1}`,
+            id: randomUUID(),
             ...address
         };
-        addresses.push(newAddress);
-        return newAddress;
+        return this.repository.addAddress(newAddress);
     }
 
     async dispatchShipment(orderId: string, userId: string, addressId: string, items: any[]): Promise<Shipment> {
@@ -21,7 +24,7 @@ export class ShippingService {
         const trackingNumber = `TRK-${Math.floor(Math.random() * 1000000000)}`;
 
         const newShipment: Shipment = {
-            id: `ship-${shipments.length + 1}`,
+            id: randomUUID(),
             orderId,
             userId,
             distributorId: 'DIST-001',
@@ -31,7 +34,7 @@ export class ShippingService {
             items
         };
 
-        shipments.push(newShipment);
-        return newShipment;
+        return this.repository.createShipment(newShipment);
     }
 }
+

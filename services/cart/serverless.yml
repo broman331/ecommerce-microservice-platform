@@ -1,0 +1,54 @@
+service: cart-service
+
+plugins:
+  - serverless-plugin-typescript
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: us-east-1
+  stage: ${opt:stage, 'dev'}
+  environment:
+    DB_PROVIDER: dynamodb
+    DYNAMODB_TABLE: carts-${self:provider.stage}
+    PRODUCT_SERVICE_URL: ${env:PRODUCT_SERVICE_URL, 'http://localhost:3004'}
+    INVENTORY_SERVICE_URL: ${env:INVENTORY_SERVICE_URL, 'http://localhost:3003'}
+    ORDER_SERVICE_URL: ${env:ORDER_SERVICE_URL, 'http://localhost:3002'}
+    PROMOTIONS_SERVICE_URL: ${env:PROMOTIONS_SERVICE_URL, 'http://localhost:3008'}
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:Query
+            - dynamodb:Scan
+            - dynamodb:GetItem
+            - dynamodb:PutItem
+            - dynamodb:UpdateItem
+            - dynamodb:DeleteItem
+          Resource: "arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.DYNAMODB_TABLE}"
+
+functions:
+  api:
+    handler: src/lambda.handler
+    events:
+      - http:
+          path: /
+          method: ANY
+      - http:
+          path: /{proxy+}
+          method: ANY
+
+resources:
+  Resources:
+    CartsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:provider.environment.DYNAMODB_TABLE}
+        AttributeDefinitions:
+          - AttributeName: customerId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: customerId
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST

@@ -8,7 +8,25 @@ import { OrderService } from '../services/orderService';
 // But wait, user service does auth. Agent B typically verifies the token or trusts the gateway.
 // I'll implement a simple mock middleware or header check for userId to make it functional.
 
-const orderService = new OrderService();
+import { MemoryOrderRepository } from '../dal/MemoryOrderRepository';
+import { DynamoOrderRepository } from '../dal/DynamoOrderRepository';
+import { FirestoreOrderRepository } from '../dal/FirestoreOrderRepository';
+import { IOrderRepository } from '../dal/IOrderRepository';
+
+let orderRepository: IOrderRepository;
+
+switch (process.env.DB_PROVIDER) {
+    case 'dynamodb':
+        orderRepository = new DynamoOrderRepository();
+        break;
+    case 'firestore':
+        orderRepository = new FirestoreOrderRepository();
+        break;
+    default:
+        orderRepository = new MemoryOrderRepository();
+}
+
+const orderService = new OrderService(orderRepository);
 
 export class OrderController {
     async getUserOrders(req: Request, res: Response) {

@@ -1,0 +1,24 @@
+service: product-service
+
+plugins:
+  - serverless-plugin-typescript
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: us-east-1
+  stage: ${opt:stage, 'dev'}
+  environment:
+    INVENTORY_SERVICE_URL: ${env:INVENTORY_SERVICE_URL, 'http://localhost:3003'}
+    ORDER_SERVICE_URL: ${env:ORDER_SERVICE_URL, 'http://localhost:3002'}
+
+functions:
+  api:
+    handler: src/lambda.handler
+    events:
+      - http:
+          path: /
+          method: ANY
+      - http:
+          path: /{proxy+}
+          method: ANY

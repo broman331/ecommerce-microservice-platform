@@ -1,37 +1,33 @@
 import axios from 'axios';
 import { Cart, Promotion, PromotionResponse } from '../models/promotion';
+import { IPromotionRepository } from '../dal/IPromotionRepository';
 
 export class PromotionService {
     private cartServiceUrl = (process.env.CART_SERVICE_URL || 'http://localhost:3007') + '/cart';
 
-    // In-memory promotions store
-    private promotions: Promotion[] = [
-        { code: 'SAVE10', type: 'PERCENTAGE', value: 10, enabled: true },
-        { code: 'MINUS5', type: 'FIXED_AMOUNT', value: 5, minOrderValue: 20, enabled: true },
-        { code: 'WELCOME20', type: 'PERCENTAGE', value: 20, minOrderValue: 50, enabled: false },
-    ];
+    constructor(private repository: IPromotionRepository) { }
 
-    public getAllPromotions(): Promotion[] {
-        return this.promotions;
+    public async getAllPromotions(): Promise<Promotion[]> {
+        return this.repository.findAll();
     }
 
-    public createPromotion(promo: Promotion): Promotion {
-        if (this.promotions.find(p => p.code === promo.code)) {
+    public async createPromotion(promo: Promotion): Promise<Promotion> {
+        const existing = await this.repository.findByCode(promo.code);
+        if (existing) {
             throw new Error('Promotion code already exists');
         }
         // Force uppercase code
         promo.code = promo.code.toUpperCase();
-        this.promotions.push(promo);
-        return promo;
+        return this.repository.save(promo);
     }
 
-    public togglePromotion(code: string): Promotion {
-        const promo = this.promotions.find(p => p.code === code);
+    public async togglePromotion(code: string): Promise<Promotion> {
+        const promo = await this.repository.findByCode(code);
         if (!promo) {
             throw new Error('Promotion not found');
         }
         promo.enabled = !promo.enabled;
-        return promo;
+        return this.repository.save(promo);
     }
 
     public async applyPromotion(customerId: string, couponCode: string): Promise<PromotionResponse> {
@@ -42,7 +38,7 @@ export class PromotionService {
         }
 
         // 2. Find Promotion
-        const promotion = this.promotions.find(p => p.code === couponCode);
+        const promotion = await this.repository.findByCode(couponCode);
         if (!promotion) {
             throw new Error('Invalid coupon code');
         }
@@ -91,3 +87,4 @@ export class PromotionService {
         }
     }
 }
+

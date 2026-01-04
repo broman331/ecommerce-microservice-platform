@@ -1,0 +1,106 @@
+name: Deploy to Release
+
+on:
+  # Manual trigger allows selecting the target cloud
+  workflow_dispatch:
+    inputs:
+      cloud_provider:
+        description: 'Cloud Provider to deploy to'
+        required: true
+        default: 'aws'
+        type: choice
+        options:
+          - aws
+          - gcp
+
+jobs:
+  deploy-backend-aws:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.cloud_provider == 'aws' }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      - name: Install Serverless
+        run: npm install -g serverless
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+      
+      # Loop deployment for cleaner logs or keep separate steps. keeping separate for clarity.
+      - name: Deploy Services (AWS)
+        run: |
+          for service in inventory user order cart wishlist promotions shipping product customer; do
+            echo "Deploying $service..."
+            cd services/$service
+            npm install
+            sls deploy --stage dev
+            cd ../..
+          done
+
+  deploy-backend-gcp:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.cloud_provider == 'gcp' }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Auth to GCP
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+      
+      - name: Deploy Services (GCP)
+        run: |
+          for service in inventory user order cart wishlist promotions shipping product customer; do
+            echo "Deploying $service..."
+            cd services/$service
+            gcloud builds submit --config cloudbuild.yaml .
+            cd ../..
+          done
+
+  deploy-frontend-aws:
+    runs-on: ubuntu-latest
+    needs: deploy-backend-aws
+    if: ${{ github.event.inputs.cloud_provider == 'aws' }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      - name: Install Serverless
+        run: npm install -g serverless
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+      - name: Deploy Frontend
+        run: |
+          cd Dashboard-Admin
+          npm install
+          sls deploy --stage dev
+
+  deploy-frontend-gcp:
+    runs-on: ubuntu-latest
+    needs: deploy-backend-gcp
+    if: ${{ github.event.inputs.cloud_provider == 'gcp' }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Auth to GCP
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+      - name: Deploy Frontend
+        run: |
+          cd Dashboard-Admin
+          gcloud builds submit --config cloudbuild.yaml .

@@ -1,0 +1,30 @@
+steps:
+  # Build the container image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'gcr.io/$PROJECT_ID/promotions-service', '.']
+  
+  # Push the container image to Container Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/promotions-service']
+  
+  # Deploy container image to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'promotions-service'
+      - '--image'
+      - 'gcr.io/$PROJECT_ID/promotions-service'
+      - '--region'
+      - 'us-central1'
+      - '--platform'
+      - 'managed'
+      - '--allow-unauthenticated'
+      - '--set-env-vars'
+      - 'DB_PROVIDER=firestore'
+      - '--set-env-vars'
+      - 'CART_SERVICE_URL=http://cart-service-url'
+
+images:
+  - 'gcr.io/$PROJECT_ID/promotions-service'

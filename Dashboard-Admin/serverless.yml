@@ -1,0 +1,29 @@
+# Serverless config for deploying Next.js using serverless-next.js component or similar
+# For this "generic" example without specific provider credentials, we'll assume a standard AWS Lambda/S3 setup 
+# or use a placeholder similar to backend services if we want to treat it as "just another service".
+# However, Next.js usually requires specific handling (Amplify or dedicated component).
+# Given the user just wants the "commands", we'll create a standard serverless.yml acting as if it's a simple dashboard or just artifact placeholder.
+
+service: dashboard-admin-frontend
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: us-east-1
+  stage: ${opt:stage, 'dev'}
+
+# In reality, for Next.js on Serverless, we'd use 'serverless-next.js' plugin or similar.
+# For now, we will just put a placeholder build script or assume S3 sync.
+
+package:
+  exclude:
+    - ./**
+  include:
+    - .next/**
+    - public/**
+    - package.json
+
+# If using 'serverless-lift' or 'serverless-next.js':
+# component: serverless-next.js
+# inputs:
+#   domain: ["foo.com"]

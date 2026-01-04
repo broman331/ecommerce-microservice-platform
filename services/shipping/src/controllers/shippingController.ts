@@ -1,35 +1,61 @@
 import { Request, Response } from 'express';
 import { ShippingService } from '../services/shippingService';
+import { MemoryShippingRepository } from '../dal/MemoryShippingRepository';
+import { DynamoShippingRepository } from '../dal/DynamoShippingRepository';
+import { FirestoreShippingRepository } from '../dal/FirestoreShippingRepository';
+import { IShippingRepository } from '../dal/IShippingRepository';
 
-const shippingService = new ShippingService();
+let shippingRepository: IShippingRepository;
+
+switch (process.env.DB_PROVIDER) {
+    case 'dynamodb':
+        shippingRepository = new DynamoShippingRepository();
+        break;
+    case 'firestore':
+        shippingRepository = new FirestoreShippingRepository();
+        break;
+    default:
+        shippingRepository = new MemoryShippingRepository();
+}
+
+const shippingService = new ShippingService(shippingRepository);
 
 export class ShippingController {
-    async getUserAddresses(req: Request, res: Response) {
+
+    constructor() {
+        // No local state
+    }
+
+    public async getUserAddresses(req: Request, res: Response): Promise<void> {
         const { userId } = req.params;
         const addresses = await shippingService.getUserAddresses(userId);
         res.json(addresses);
     }
 
-    async addAddress(req: Request, res: Response) {
+    public async addAddress(req: Request, res: Response): Promise<void> {
         const { userId } = req.params;
         const addressData = req.body;
 
-        if (!addressData.streetAddress || !addressData.city) {
-            return res.status(400).json({ message: 'Missing address fields' });
+        // Basic validation
+        if (!addressData.fullName || !addressData.streetAddress || !addressData.city || !addressData.zipCode) {
+            res.status(400).json({ error: 'Missing required address fields' });
+            return;
         }
 
-        const newAddress = await shippingService.addAddress({ ...addressData, userId });
+        const newAddress = await shippingService.addAddress({ userId, ...addressData });
         res.status(201).json(newAddress);
     }
 
-    async dispatch(req: Request, res: Response) {
+    public async dispatch(req: Request, res: Response): Promise<void> {
         const { orderId, userId, addressId, items } = req.body;
 
         if (!orderId || !userId || !items || !items.length) {
-            return res.status(400).json({ message: 'Invalid shipment request' });
+            res.status(400).json({ error: 'Invalid shipment request' });
+            return;
         }
 
         const shipment = await shippingService.dispatchShipment(orderId, userId, addressId, items);
         res.status(201).json(shipment);
     }
 }
+

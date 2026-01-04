@@ -1,0 +1,30 @@
+steps:
+  # Build the container image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'gcr.io/$PROJECT_ID/order-service', '.']
+  
+  # Push the container image to Container Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/order-service']
+  
+  # Deploy container image to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'order-service'
+      - '--image'
+      - 'gcr.io/$PROJECT_ID/order-service'
+      - '--region'
+      - 'us-central1'
+      - '--platform'
+      - 'managed'
+      - '--allow-unauthenticated'
+      - '--set-env-vars'
+      - 'DB_PROVIDER=firestore'
+      - '--set-env-vars'
+      - 'INVENTORY_SERVICE_URL=http://inventory-service-url' # Must be updated manually after deployment
+
+images:
+  - 'gcr.io/$PROJECT_ID/order-service'

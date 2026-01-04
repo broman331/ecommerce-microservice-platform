@@ -1,7 +1,25 @@
 import { Request, Response } from 'express';
 import { ProductService } from '../services/productService';
 
-const productService = new ProductService();
+import { MemoryProductRepository } from '../dal/MemoryProductRepository';
+import { DynamoProductRepository } from '../dal/DynamoProductRepository';
+import { FirestoreProductRepository } from '../dal/FirestoreProductRepository';
+import { IProductRepository } from '../dal/IProductRepository';
+
+let productRepository: IProductRepository;
+
+switch (process.env.DB_PROVIDER) {
+    case 'dynamodb':
+        productRepository = new DynamoProductRepository();
+        break;
+    case 'firestore':
+        productRepository = new FirestoreProductRepository();
+        break;
+    default:
+        productRepository = new MemoryProductRepository();
+}
+
+const productService = new ProductService(productRepository);
 
 export class ProductController {
     async getAllProducts(req: Request, res: Response) {

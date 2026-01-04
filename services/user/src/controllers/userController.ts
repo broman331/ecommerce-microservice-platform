@@ -4,7 +4,25 @@ import { UserService } from '../services/userService';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
-const userService = new UserService();
+import { MemoryUserRepository } from '../dal/MemoryUserRepository';
+import { DynamoUserRepository } from '../dal/DynamoUserRepository';
+import { FirestoreUserRepository } from '../dal/FirestoreUserRepository';
+import { IUserRepository } from '../dal/IUserRepository';
+
+let userRepository: IUserRepository;
+
+switch (process.env.DB_PROVIDER) {
+    case 'dynamodb':
+        userRepository = new DynamoUserRepository();
+        break;
+    case 'firestore':
+        userRepository = new FirestoreUserRepository();
+        break;
+    default:
+        userRepository = new MemoryUserRepository();
+}
+
+const userService = new UserService(userRepository);
 
 export class UserController {
     async getProfile(req: AuthRequest, res: Response) {

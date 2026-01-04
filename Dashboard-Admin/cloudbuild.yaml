@@ -1,0 +1,29 @@
+steps:
+  # Build the container image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'gcr.io/$PROJECT_ID/dashboard-admin', '.']
+  
+  # Push the container image to Container Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/dashboard-admin']
+  
+  # Deploy container image to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'dashboard-admin'
+      - '--image'
+      - 'gcr.io/$PROJECT_ID/dashboard-admin'
+      - '--region'
+      - 'us-central1'
+      - '--platform'
+      - 'managed'
+      - '--allow-unauthenticated'
+      # Pass env vars for services
+      - '--set-env-vars'
+      - 'NEXT_PUBLIC_API_URL=https://api.example.com' # Needs real gateway URL
+
+images:
+  - 'gcr.io/$PROJECT_ID/dashboard-admin'

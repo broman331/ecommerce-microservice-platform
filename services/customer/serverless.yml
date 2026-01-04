@@ -1,0 +1,25 @@
+service: customer-service
+
+plugins:
+  - serverless-plugin-typescript
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: us-east-1
+  stage: ${opt:stage, 'dev'}
+  environment:
+    USER_SERVICE_URL: ${env:USER_SERVICE_URL, 'http://localhost:3000'}
+    ORDER_SERVICE_URL: ${env:ORDER_SERVICE_URL, 'http://localhost:3002'}
+    WISHLIST_SERVICE_URL: ${env:WISHLIST_SERVICE_URL, 'http://localhost:3006'}
+
+functions:
+  api:
+    handler: src/lambda.handler
+    events:
+      - http:
+          path: /
+          method: ANY
+      - http:
+          path: /{proxy+}
+          method: ANY

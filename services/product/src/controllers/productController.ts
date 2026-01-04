@@ -1,12 +1,34 @@
 import { Request, Response } from 'express';
-import { AggregatorService } from '../services/aggregatorService';
+import { ProductService } from '../services/aggregatorService';
+import { AggregatorProductRepository } from '../dal/AggregatorProductRepository';
+import { DynamoProductRepository } from '../dal/DynamoProductRepository';
+import { FirestoreProductRepository } from '../dal/FirestoreProductRepository';
+import { MemoryProductRepository } from '../dal/MemoryProductRepository';
+import { IProductRepository } from '../dal/IProductRepository';
 
-const aggregator = new AggregatorService();
+let productRepository: IProductRepository;
+
+switch (process.env.DB_PROVIDER) {
+    case 'dynamodb':
+        productRepository = new DynamoProductRepository();
+        break;
+    case 'firestore':
+        productRepository = new FirestoreProductRepository();
+        break;
+    case 'memory':
+        productRepository = new MemoryProductRepository();
+        break;
+    default:
+        // Default to Aggregator mode if not specified or explicit 'aggregator'
+        productRepository = new AggregatorProductRepository();
+}
+
+const productService = new ProductService(productRepository);
 
 export class ProductController {
     async getAll(req: Request, res: Response) {
         try {
-            const products = await aggregator.getAllEnrichedProducts();
+            const products = await productService.getAllEnrichedProducts();
             res.json(products);
         } catch (error) {
             console.error('Error in getAll products:', error);
@@ -17,7 +39,7 @@ export class ProductController {
     async getById(req: Request, res: Response) {
         try {
             const { id } = req.params;
-            const product = await aggregator.getEnrichedProduct(id);
+            const product = await productService.getEnrichedProduct(id);
             if (!product) {
                 return res.status(404).json({ message: 'Product not found' });
             }
@@ -30,7 +52,7 @@ export class ProductController {
 
     async create(req: Request, res: Response) {
         try {
-            const product = await aggregator.createEnrichedProduct(req.body);
+            const product = await productService.createEnrichedProduct(req.body);
             res.status(201).json(product);
         } catch (e) {
             const err = e as any;
@@ -42,7 +64,7 @@ export class ProductController {
     async update(req: Request, res: Response) {
         try {
             const { id } = req.params;
-            const product = await aggregator.updateEnrichedProduct(id, req.body);
+            const product = await productService.updateEnrichedProduct(id, req.body);
             res.json(product);
         } catch (e) {
             const err = e as any;
@@ -51,3 +73,4 @@ export class ProductController {
         }
     }
 }
+

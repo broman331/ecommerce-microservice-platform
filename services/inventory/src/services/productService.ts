@@ -1,36 +1,37 @@
-import { products, Product } from '../models/Product';
+import { Product } from '../models/Product';
+import { IProductRepository } from '../dal/IProductRepository';
 
 export class ProductService {
+    constructor(private repository: IProductRepository) { }
+
     async findAll(): Promise<Product[]> {
-        return products;
+        return this.repository.findAll();
     }
 
     async findById(id: string): Promise<Product | undefined> {
-        return products.find(p => p.id === id);
+        return this.repository.findById(id);
     }
 
     async createProduct(data: Omit<Product, 'id'>): Promise<Product> {
+        const products = await this.repository.findAll();
         const newProduct: Product = {
-            id: (products.length + 1).toString(),
+            id: (products.length + 1).toString(), // Simple ID generation
             ...data
         };
-        products.push(newProduct);
-        return newProduct;
+        return this.repository.create(newProduct);
     }
 
     async updateProduct(id: string, data: Partial<Product>): Promise<Product | undefined> {
-        const product = products.find(p => p.id === id);
-        if (!product) return undefined;
-
-        Object.assign(product, data);
-        return product;
+        return this.repository.update(id, data);
     }
 
     async deductStock(id: string, quantity: number): Promise<boolean> {
-        const product = products.find(p => p.id === id);
+        const product = await this.repository.findById(id);
         if (!product || product.stock < quantity) return false;
 
-        product.stock -= quantity;
+        const newStock = product.stock - quantity;
+        await this.repository.update(id, { stock: newStock });
         return true;
     }
 }
+

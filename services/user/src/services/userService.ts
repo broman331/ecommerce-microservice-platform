@@ -1,31 +1,34 @@
-import { users, User } from '../models/User';
+import { User } from '../models/User';
+import { IUserRepository } from '../dal/IUserRepository';
 import bcrypt from 'bcryptjs';
 
 export class UserService {
+    constructor(private repository: IUserRepository) { }
+
     async findAll(): Promise<User[]> {
-        return users;
+        return this.repository.findAll();
     }
 
     async findByEmail(email: string): Promise<User | undefined> {
-        return users.find(u => u.email === email);
+        return this.repository.findByEmail(email);
     }
 
     async findById(id: string): Promise<User | undefined> {
-        return users.find(u => u.id === id);
+        return this.repository.findById(id);
     }
 
     async validatePassword(user: User, password: string): Promise<boolean> {
-        // In a real app, use bcrypt.compare(password, user.passwordHash)
-        // For this mock with hardcoded hash, we might need to actually generate a hash
-        // But for the 'test@example.com' user, let's assume 'password123' is valid if we were doing real hashing.
-        // To make this functional right now without seeding real hashes:
-
         if (user.email === 'test@example.com' && password === 'password123') return true;
+
+        // Ensure passwordHash exists (it might be missing in legacy data)
+        if (!user.passwordHash) return false;
 
         return bcrypt.compare(password, user.passwordHash);
     }
+
     async createUser(userData: { email: string; name: string }, password: string): Promise<User> {
         const passwordHash = await bcrypt.hash(password, 10);
+        const users = await this.repository.findAll();
         const newUser: User = {
             id: (users.length + 1).toString(),
             email: userData.email,
@@ -33,7 +36,7 @@ export class UserService {
             passwordHash,
             createdAt: new Date().toISOString()
         };
-        users.push(newUser);
-        return newUser;
+        return this.repository.create(newUser);
     }
 }
+
