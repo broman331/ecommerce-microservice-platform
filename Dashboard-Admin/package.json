@@ -1,5 +1,5 @@
 {
-  "name": "web",
+  "name": "dashboard-admin",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -11,6 +11,8 @@
     "test:e2e": "playwright test"
   },
   "dependencies": {
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.562.0",
     "next": "16.1.1",
     "react": "19.2.3",
     "react-dom": "19.2.3"
